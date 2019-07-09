@@ -1,8 +1,11 @@
 package com.records.StatementProcessor.model;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+@XmlRootElement(name = "record")
 public class TransactionRecord {
 
     private int reference;
@@ -22,6 +25,7 @@ public class TransactionRecord {
         this.processingResult = processingResult;
     }
 
+    @XmlAttribute(name = "reference")
     public int getReference() {
         return reference;
     }
