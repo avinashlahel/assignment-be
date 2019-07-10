@@ -32,7 +32,10 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
-
+/**
+ * Configuration class for batch processing
+ * @author avi
+ */
 @EnableBatchProcessing
 @Configuration
 @Primary
@@ -94,6 +97,11 @@ public class BatchConfig extends DefaultBatchConfigurer {
     }
 
 
+    /**
+     * csv reader for csv processing step
+     * @param resource
+     * @return
+     */
     @Bean
     public ItemReader<TransactionRecord> csvItemReader(@Value("${csvInput}") Resource resource) {
         FlatFileItemReader<TransactionRecord> fileItemReader = new FlatFileItemReader<>();
@@ -105,6 +113,11 @@ public class BatchConfig extends DefaultBatchConfigurer {
         return fileItemReader;
     }
 
+    /**
+     * xml reader for xml processing step
+     * @param resource
+     * @return
+     */
     @Bean
     public ItemReader<TransactionRecord> xmlItemReader(@Value("${xmlInput}") Resource resource) {
         StaxEventItemReader<TransactionRecord> xmlFileReader = new StaxEventItemReader<>();
@@ -140,7 +153,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
 
 
     /**
-     * FileWriter bean to be passed into each of the steps
+     * FileWriter bean to be passed into csv step
      * @return
      */
     @Bean
@@ -153,6 +166,11 @@ public class BatchConfig extends DefaultBatchConfigurer {
         }
     }
 
+
+    /**
+     * FileWriter bean to be passed into xml step
+     * @return
+     */
     @Bean
     public FlatFileItemWriter<TransactionRecord> xmlWriter(){
         {
@@ -163,7 +181,11 @@ public class BatchConfig extends DefaultBatchConfigurer {
         }
     }
 
-
+    /**
+     * Generic code for the two writers
+     * @param itemWriter
+     * @return
+     */
     private FlatFileItemWriter<TransactionRecord> configureFlatFileItemWriter(FlatFileItemWriter<TransactionRecord> itemWriter){
         itemWriter.setEncoding("UTF-8");
         itemWriter.setHeaderCallback(new HeaderWriter(HEADER));
@@ -183,14 +205,6 @@ public class BatchConfig extends DefaultBatchConfigurer {
     @Bean
     public SkipPolicy fileVerificationSkipper() {
         return new FileVerificationSkipper();
-    }
-
-
-    @BeforeStep
-    public void retrieveInterstepData(StepExecution stepExecution) {
-        JobExecution jobExecution = stepExecution.getJobExecution();
-        log.info("@@@@@@@@@@@@@@@@@@@@@ Before called");
-
     }
 
 }

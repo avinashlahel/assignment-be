@@ -18,7 +18,7 @@ public class TransactionRecordProcessor implements ItemProcessor<TransactionReco
 
     private static final Logger log = LoggerFactory.getLogger(TransactionRecord.class);
 
-    private final HashSet<TransactionRecord> uniqueRecords = new HashSet<>();
+    public final HashSet<TransactionRecord> uniqueRecords = new HashSet<>();
 
     /**
      * Entrypoint for the processor to go through all records
