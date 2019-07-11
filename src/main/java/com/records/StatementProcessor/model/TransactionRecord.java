@@ -1,7 +1,14 @@
 package com.records.StatementProcessor.model;
 
+import com.records.StatementProcessor.utils.XMLBigDecimalMapper;
+import com.records.StatementProcessor.utils.XMLIntegerMapper;
+import com.records.StatementProcessor.utils.XMLStringMapper;
+
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -26,6 +33,7 @@ public class TransactionRecord {
     }
 
     @XmlAttribute(name = "reference")
+    @XmlJavaTypeAdapter(type = int.class, value = XMLIntegerMapper.class)
     public int getReference() {
         return reference;
     }
@@ -34,6 +42,7 @@ public class TransactionRecord {
         this.reference = reference;
     }
 
+    @XmlJavaTypeAdapter(type = String.class, value = XMLStringMapper.class)
     public String getAccountNumber() {
         return accountNumber;
     }
@@ -42,6 +51,7 @@ public class TransactionRecord {
         this.accountNumber = accountNumber;
     }
 
+    @XmlJavaTypeAdapter(type = String.class, value = XMLStringMapper.class)
     public String getDescription() {
         return description;
     }
@@ -50,6 +60,7 @@ public class TransactionRecord {
         this.description = description;
     }
 
+    @XmlJavaTypeAdapter(type = BigDecimal.class, value = XMLBigDecimalMapper.class)
     public BigDecimal getStartBalance() {
         return startBalance;
     }
@@ -58,6 +69,7 @@ public class TransactionRecord {
         this.startBalance = startBalance;
     }
 
+    @XmlJavaTypeAdapter(type = BigDecimal.class, value = XMLBigDecimalMapper.class)
     public BigDecimal getMutation() {
         return mutation;
     }
@@ -66,6 +78,7 @@ public class TransactionRecord {
         this.mutation = mutation;
     }
 
+    @XmlJavaTypeAdapter(type = BigDecimal.class, value = XMLBigDecimalMapper.class)
     public BigDecimal getEndBalance() {
         return endBalance;
     }

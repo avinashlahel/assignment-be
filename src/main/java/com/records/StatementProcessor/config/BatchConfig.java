@@ -1,14 +1,19 @@
 package com.records.StatementProcessor.config;
+
+import com.records.StatementProcessor.FieldValidationEventHandler;
+import com.records.StatementProcessor.RecordFieldSetMapper;
 import com.records.StatementProcessor.model.TransactionRecord;
 import com.records.StatementProcessor.utils.FileVerificationSkipper;
 import com.records.StatementProcessor.utils.HeaderWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.*;
-import org.springframework.batch.core.annotation.BeforeStep;
-import org.springframework.batch.core.configuration.annotation.*;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.core.scope.context.StepContext;
 import org.springframework.batch.core.step.skip.SkipPolicy;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
@@ -16,7 +21,6 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.LineMapper;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
@@ -126,6 +130,7 @@ public class BatchConfig extends DefaultBatchConfigurer {
         xmlFileReader.setFragmentRootElementName("record");
 
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+        marshaller.setValidationEventHandler(new FieldValidationEventHandler());
         marshaller.setClassesToBeBound(TransactionRecord.class);
         xmlFileReader.setUnmarshaller(marshaller);
 
@@ -141,12 +146,8 @@ public class BatchConfig extends DefaultBatchConfigurer {
         tokenizer.setStrict(true);
         tokenizer.setNames(new String[]{"reference", "accountNumber", "description", "startBalance", "mutation", "endBalance"});
 
-        // fieldsetmapper to map parsed field
-        BeanWrapperFieldSetMapper<TransactionRecord> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
-        fieldSetMapper.setTargetType(TransactionRecord.class);
-
         lineMapper.setLineTokenizer(tokenizer);
-        lineMapper.setFieldSetMapper(fieldSetMapper);
+        lineMapper.setFieldSetMapper(new RecordFieldSetMapper());
 
         return lineMapper;
     }

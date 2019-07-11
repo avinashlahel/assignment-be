@@ -1,5 +1,6 @@
 package com.records.StatementProcessor.utils;
 
+import com.records.StatementProcessor.exception.EmptyFieldException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.step.skip.SkipLimitExceededException;
@@ -14,16 +15,22 @@ public class FileVerificationSkipper implements SkipPolicy {
 
     @Override
     public boolean shouldSkip(Throwable exception, int skipCount) throws SkipLimitExceededException {
-        if(exception instanceof FileNotFoundException)
+        if (exception instanceof FileNotFoundException)
             return false;
-        else if(exception instanceof FlatFileParseException && skipCount <=5) {
+        else if ((exception instanceof FlatFileParseException) && skipCount <= 5) {
             FlatFileParseException parseException = (FlatFileParseException) exception;
             StringBuffer buffer = new StringBuffer();
             buffer.append("Error occurred while processing line ").append(parseException.getLineNumber());
             buffer.append("\n Below is the faulty input line \n").append(parseException.getInput());
-            log.error("{}",buffer.toString());
+            log.error("{}", buffer.toString());
             return true;
+        } else if (exception instanceof EmptyFieldException && skipCount <= 5) {
+            log.error(exception.getMessage());
+            return true;
+        } else {
+            exception.printStackTrace();
+            log.info(" *************  Unrecoverable exception occurred, halting the batch cycle *************  ");
+            return false;
         }
-        return true;
     }
 }

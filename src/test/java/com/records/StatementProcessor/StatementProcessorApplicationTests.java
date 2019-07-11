@@ -18,9 +18,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Test cases for batch processing, marked to run
@@ -97,22 +97,43 @@ public class StatementProcessorApplicationTests {
     }
 
     /**
+     * Test inValid End balance: Test the scenario where end
+     * balance is not equal to the sum of startBalance and
+     * mutation. In such a case the processor should
+     * return the record to be written to the ItemWriter
+     * @throws Exception
+     */
+    @Test
+    public void testInValidEndBalance() throws Exception {
+        TransactionRecord record = new TransactionRecord();
+        record.setReference(111111);
+        record.setAccountNumber("NL93ABNA0585619023");
+        record.setDescription("This is a test desc");
+        record.setStartBalance(new BigDecimal(47.45).setScale(2, RoundingMode.CEILING));
+        record.setMutation(new BigDecimal(17.82).setScale(2, RoundingMode.CEILING));
+        record.setEndBalance(new BigDecimal(12.27).setScale(2, RoundingMode.CEILING));
+        TransactionRecord response = recordProcessor.process(record);
+        assertEquals(record, response);
+    }
+
+    /**
      * Test Valid End balance: Test the scenario where end
-     * balance is negative. In such a case the processor should
+     * balance is EQUAL to the sum of startBalance and
+     * mutation. In such a case the processor should
      * return the record to be written to the ItemWriter
      * @throws Exception
      */
     @Test
     public void testValidEndBalance() throws Exception {
         TransactionRecord record = new TransactionRecord();
-        record.setReference(111111);
+        record.setReference(113331);
         record.setAccountNumber("NL93ABNA0585619023");
         record.setDescription("This is a test desc");
-        record.setStartBalance(new BigDecimal(47.45));
-        record.setMutation(new BigDecimal(17.82));
-        record.setEndBalance(new BigDecimal(-65.27));
+        record.setStartBalance(new BigDecimal(47.45).setScale(2, RoundingMode.CEILING));
+        record.setMutation(new BigDecimal(17.82).setScale(2, RoundingMode.CEILING));
+        record.setEndBalance(new BigDecimal(65.28).setScale(2, RoundingMode.CEILING));
         TransactionRecord response = recordProcessor.process(record);
-        assertEquals(record, response);
+        assertNull(response);
     }
 
 

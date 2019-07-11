@@ -30,7 +30,7 @@ run by running this class.
 
 # External Configuration
 
-To change the location of the input/output files use the application.properties files. The properties have been 
+To change the location of the input/output files, use the application.properties file. The properties have been 
 named accordingly.
 
  

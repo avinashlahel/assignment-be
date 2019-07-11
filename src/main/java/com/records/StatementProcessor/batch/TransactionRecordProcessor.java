@@ -7,6 +7,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashSet;
 
 /**
@@ -22,6 +23,7 @@ public class TransactionRecordProcessor implements ItemProcessor<TransactionReco
 
     /**
      * Entrypoint for the processor to go through all records
+     *
      * @param transactionRecord
      * @return
      * @throws Exception
@@ -56,16 +58,22 @@ public class TransactionRecordProcessor implements ItemProcessor<TransactionReco
     }
 
     /**
-     * Accounting for non-negative end balance, this methods marks
-     * the record as invalid
+     * Balance is considered valid when start balance
+     * and mutation add up to the endBalance. If otherwise
+     * the method returns false
      *
      * @param record
      * @return
      */
     private boolean isEndBalanceValid(TransactionRecord record) {
-        if (record.getEndBalance().compareTo(new BigDecimal(0)) < 0) {
-            log.error("[INVALID] Negative balance found for id: {}", record.getReference());
-            record.setProcessingResult("[INVALID] End Balance value cannot be in the negative");
+        BigDecimal startBalance = record.getStartBalance();
+        BigDecimal mutation = record.getMutation();
+
+        BigDecimal expectedBalance = startBalance.add(mutation);
+
+        if (record.getEndBalance().compareTo(expectedBalance) != 0) {
+            log.error("[INVALID] End balance not equal to the sum of start balance and mutation for reference#: {}", record.getReference());
+            record.setProcessingResult("[INVALID] End balance not equal to the sum of start balance and mutation");
             return false;
         }
         return true;
