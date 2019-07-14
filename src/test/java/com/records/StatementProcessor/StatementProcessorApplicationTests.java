@@ -3,10 +3,13 @@ package com.records.StatementProcessor;
 import com.records.StatementProcessor.batch.TransactionRecordProcessor;
 import com.records.StatementProcessor.model.TransactionRecord;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.test.JobLauncherTestUtils;
@@ -31,18 +34,29 @@ import static org.junit.Assert.*;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = StatementProcessorApplication.class, properties = {"spring.batch.job.enabled=false"})
-@ContextConfiguration(locations = {"classpath:test-context.xml"})
+@ContextConfiguration(classes = TestConfiguration.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class StatementProcessorApplicationTests {
 
+    private static final Logger log = LoggerFactory.getLogger(StatementProcessorApplicationTests.class);
+
     @Autowired
     TransactionRecordProcessor recordProcessor;
+
     @Autowired
     private JobLauncherTestUtils jobLauncherTestUtils;
+
     @Value("${csvOutputPath}")
     private String csvOutput;
+
     @Value("${xmlOutputPath}")
     private String xmlOutput;
+
+    @Before
+    public void setUp() throws Exception {
+        recordProcessor.reset();
+        jobLauncherTestUtils.launchJob();
+    }
 
     /**
      * This test will cover the entire batch run and generate
@@ -52,6 +66,7 @@ public class StatementProcessorApplicationTests {
      */
     @Test
     public void completeJobTest() throws Exception {
+        log.info("*********  Running test : {} *********","completeJobTest");
         JobExecution jobExecution = jobLauncherTestUtils.launchJob();
         Assert.assertEquals(BatchStatus.COMPLETED, jobExecution.getStatus());
     }
@@ -62,6 +77,7 @@ public class StatementProcessorApplicationTests {
      */
     @Test
     public void testCSVReportGenerated() {
+        log.info("*********  Running test : {} *********","testCSVReportGenerated");
         File file = new File(csvOutput);
         assertTrue(file.exists());
     }
@@ -72,6 +88,7 @@ public class StatementProcessorApplicationTests {
      */
     @Test
     public void testXMLReportGenerated() {
+        log.info("*********  Running test : {} *********","testXMLReportGenerated");
         File file = new File(xmlOutput);
         assertTrue(file.exists());
     }
@@ -85,15 +102,37 @@ public class StatementProcessorApplicationTests {
      */
     @Test
     public void testDuplicate() throws Exception {
+        log.info("*********  Running test : {} *********","testDuplicate");
         TransactionRecord record = new TransactionRecord();
         record.setReference(109762);
         record.setAccountNumber("NL93ABNA0585619023");
         record.setDescription("Flowers from Rik de Vries");
-        record.setStartBalance(new BigDecimal(47.45));
-        record.setMutation(new BigDecimal(17.82));
-        record.setEndBalance(new BigDecimal(65.27));
+        record.setStartBalance(new BigDecimal(47.45).setScale(2, RoundingMode.HALF_EVEN));
+        record.setMutation(new BigDecimal(17.82).setScale(2, RoundingMode.HALF_EVEN));
+        record.setEndBalance(new BigDecimal(65.27).setScale(2, RoundingMode.HALF_EVEN));
         TransactionRecord response = recordProcessor.process(record);
         assertEquals(record, response);
+    }
+
+
+    /**
+     * Test isNotDuplicate: A unique record should return
+     * null so that the record in not written to the report
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testIsNotDuplicate() throws Exception {
+        log.info("*********  Running test : {} *********","testIsNotDuplicate");
+        TransactionRecord record = new TransactionRecord();
+        record.setReference(999999);
+        record.setAccountNumber("NL93ABNA0585619023");
+        record.setDescription("Flowers from Rik de Vries");
+        record.setStartBalance(new BigDecimal(47.45).setScale(2, RoundingMode.HALF_EVEN));
+        record.setMutation(new BigDecimal(17.82).setScale(2, RoundingMode.HALF_EVEN));
+        record.setEndBalance(new BigDecimal(65.27).setScale(2, RoundingMode.HALF_EVEN));
+        TransactionRecord response = recordProcessor.process(record);
+        assertNull(response);
     }
 
     /**
@@ -101,17 +140,19 @@ public class StatementProcessorApplicationTests {
      * balance is not equal to the sum of startBalance and
      * mutation. In such a case the processor should
      * return the record to be written to the ItemWriter
+     *
      * @throws Exception
      */
     @Test
     public void testInValidEndBalance() throws Exception {
+        log.info("*********  Running test : {} *********","testInValidEndBalance");
         TransactionRecord record = new TransactionRecord();
         record.setReference(111111);
         record.setAccountNumber("NL93ABNA0585619023");
         record.setDescription("This is a test desc");
-        record.setStartBalance(new BigDecimal(47.45).setScale(2, RoundingMode.CEILING));
-        record.setMutation(new BigDecimal(17.82).setScale(2, RoundingMode.CEILING));
-        record.setEndBalance(new BigDecimal(12.27).setScale(2, RoundingMode.CEILING));
+        record.setStartBalance(new BigDecimal(47.45).setScale(2, RoundingMode.HALF_EVEN));
+        record.setMutation(new BigDecimal(17.82).setScale(2, RoundingMode.HALF_EVEN));
+        record.setEndBalance(new BigDecimal(12.27).setScale(2, RoundingMode.HALF_EVEN));
         TransactionRecord response = recordProcessor.process(record);
         assertEquals(record, response);
     }
@@ -121,21 +162,22 @@ public class StatementProcessorApplicationTests {
      * balance is EQUAL to the sum of startBalance and
      * mutation. In such a case the processor should
      * return the record to be written to the ItemWriter
+     *
      * @throws Exception
      */
     @Test
     public void testValidEndBalance() throws Exception {
+        log.info("*********  Running test : {} *********","testValidEndBalance");
         TransactionRecord record = new TransactionRecord();
         record.setReference(113331);
         record.setAccountNumber("NL93ABNA0585619023");
         record.setDescription("This is a test desc");
-        record.setStartBalance(new BigDecimal(47.45).setScale(2, RoundingMode.CEILING));
-        record.setMutation(new BigDecimal(17.82).setScale(2, RoundingMode.CEILING));
-        record.setEndBalance(new BigDecimal(65.28).setScale(2, RoundingMode.CEILING));
+        record.setStartBalance(new BigDecimal(47.45).setScale(2, RoundingMode.HALF_EVEN));
+        record.setMutation(new BigDecimal(17.82).setScale(2, RoundingMode.HALF_EVEN));
+        record.setEndBalance(new BigDecimal(65.27).setScale(2, RoundingMode.HALF_EVEN));
         TransactionRecord response = recordProcessor.process(record);
         assertNull(response);
     }
-
 
 
 }

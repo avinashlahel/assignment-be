@@ -19,7 +19,7 @@ public class TransactionRecordProcessor implements ItemProcessor<TransactionReco
 
     private static final Logger log = LoggerFactory.getLogger(TransactionRecord.class);
 
-    public final HashSet<TransactionRecord> uniqueRecords = new HashSet<>();
+    private HashSet<TransactionRecord> uniqueRecords = new HashSet<>();
 
     /**
      * Entrypoint for the processor to go through all records
@@ -77,5 +77,9 @@ public class TransactionRecordProcessor implements ItemProcessor<TransactionReco
             return false;
         }
         return true;
+    }
+
+    public void reset(){
+        uniqueRecords = new HashSet<>();
     }
 }

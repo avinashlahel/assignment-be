@@ -35,15 +35,15 @@ public class RecordFieldSetMapper implements FieldSetMapper<TransactionRecord> {
 
         //start balance
         if(fs.readString("startBalance").isEmpty()) throw new BindException(fs,"startBalance");
-        else record.setStartBalance(fs.readBigDecimal("startBalance").setScale(2, RoundingMode.CEILING));
+        else record.setStartBalance(fs.readBigDecimal("startBalance").setScale(2, RoundingMode.HALF_EVEN));
 
         //mutation
         if(fs.readString("mutation").isEmpty()) throw new BindException(fs,"mutation");
-        else record.setMutation(fs.readBigDecimal("mutation").setScale(2, RoundingMode.CEILING));
+        else record.setMutation(fs.readBigDecimal("mutation").setScale(2, RoundingMode.HALF_EVEN));
 
         //endBalance
         if(fs.readString("endBalance").isEmpty()) throw new BindException(fs,"endBalance");
-        else record.setEndBalance(fs.readBigDecimal("endBalance").setScale(2, RoundingMode.CEILING));
+        else record.setEndBalance(fs.readBigDecimal("endBalance").setScale(2, RoundingMode.HALF_EVEN));
 
         return record;
     }

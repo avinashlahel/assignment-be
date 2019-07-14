@@ -13,7 +13,7 @@ public class XMLBigDecimalMapper extends XmlAdapter<String, BigDecimal> {
         if(v==null || v.isEmpty())
             throw new EmptyFieldException("Empty field identified while parsing a node");
 
-        return new BigDecimal(v).setScale(2, RoundingMode.CEILING);
+        return new BigDecimal(v).setScale(2, RoundingMode.HALF_EVEN);
     }
 
     @Override
